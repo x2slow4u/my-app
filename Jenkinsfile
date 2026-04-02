@@ -7,7 +7,39 @@ pipeline {
         DOCKER_USER = 'x2slow4u'
         IMAGE = "${DOCKER_REGISTRY}/${DOCKER_USER}/${APP_NAME}"
     }
-    
+
+            stage('Deploy with Compose') {
+        steps {
+            sh '''
+                echo "Starting services with Docker Compose..."
+                docker-compose up -d
+                sleep 5
+                docker-compose ps
+            '''
+        }
+    }
+
+    stage('Integration Test') {
+        steps {
+            sh '''
+                echo "Testing web service..."
+                curl -f http://localhost:5000/ || exit 1
+                curl -f http://localhost:5000/health || exit 1
+                curl -f http://localhost:5000/db || exit 1
+                echo "All tests passed!"
+            '''
+        }
+    }
+
+    stage('Stop Services') {
+        steps {
+            sh '''
+                echo "Stopping services..."
+                docker-compose down
+            '''
+        }
+    }
+
     stages {
         stage('Checkout') {
             steps {
