@@ -101,14 +101,14 @@ pipeline {
             }
         }
 
-//         stage('Stop Services') {
-//             steps {
-//                 sh '''
-//                     echo "Stopping services..."
-//                     docker-compose down
-//                 '''
-//             }
-//         }
+         stage('Stop Services') {
+             steps {
+                 sh '''
+                     echo "Stopping services..."
+                     docker-compose down
+                 '''
+             }
+         }
 
         stage('Clean Up') {
             steps {
