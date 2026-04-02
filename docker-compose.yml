@@ -11,7 +11,10 @@ services:
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASSWORD=secret
+      - REDIS_URL=redis://redis:6379
+      - DB_HOST=db
     depends_on:
+      - redis
       - db
     networks:
       - app-network
