@@ -1,7 +1,7 @@
 from flask import Flask
 import os
 import psycopg2
-
+import redis
 app = Flask(__name__)
 
 
