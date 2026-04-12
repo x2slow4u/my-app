@@ -11,8 +11,8 @@ services:
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASSWORD=secret
-      - REDIS_URL=redis://redis:6379
-      - DB_HOST=db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - redis
       - db
@@ -30,15 +30,14 @@ services:
       - app-network
 
   redis:
-      image: redis:7-alpine
-      ports:
-        - "6379:6379"
-      volumes:
-        - redis-data:/data
-      networks:
-        - app-network
-      command: redis-server --appendonly yes
-
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    command: redis-server --appendonly yes
 
 volumes:
   postgres-data:
