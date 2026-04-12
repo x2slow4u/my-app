@@ -101,6 +101,20 @@ pipeline {
             }
         }
 
+        stage('Test Monitoring') {
+            steps {
+                sh '''
+                    echo "Testing Prometheus..."
+                    curl -f http://localhost:9090/-/healthy || exit 1
+
+                    echo "Testing Grafana..."
+                    curl -f http://localhost:3000/api/health || exit 1
+
+                    echo "Monitoring services are healthy!"
+                '''
+            }
+        }
+
          stage('Stop Services') {
              steps {
                  sh '''

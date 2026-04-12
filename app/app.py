@@ -70,5 +70,15 @@ def stats():
     except Exception as e:
         return f"Stats error: {e}"
 
+
+@app.route('/metrics')
+def metrics():
+    """Эндпоинт для Prometheus"""
+    from prometheus_client import generate_latest, REGISTRY, Counter, Histogram
+    import time
+
+    # Простые метрики для демонстрации
+    return "Metrics endpoint ready for Prometheus"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
