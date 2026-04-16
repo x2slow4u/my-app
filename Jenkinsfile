@@ -107,6 +107,9 @@ pipeline {
                     echo "Testing Prometheus..."
                     curl -f http://localhost:9090/-/healthy || exit 1
 
+                    echo "Waiting for Grafana to be ready..."
+                    sleep 10
+
                     echo "Testing Grafana..."
                     curl -f http://localhost:3000/api/health || exit 1
 
