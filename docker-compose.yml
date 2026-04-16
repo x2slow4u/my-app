@@ -68,6 +68,8 @@ services:
     image: prometheuscommunity/postgres-exporter:latest
     environment:
       - DATA_SOURCE_NAME=postgresql://postgres:secret@db:5432/postgres?sslmode=disable
+    ports:
+      - "9187:9187"
     networks:
       - app-network
     depends_on:
@@ -78,6 +80,8 @@ services:
     image: oliver006/redis_exporter:latest
     environment:
       - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
     networks:
       - app-network
     depends_on:
