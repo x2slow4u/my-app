@@ -2,8 +2,8 @@ from flask import Flask, jsonify
 import os
 import psycopg2
 import redis
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter, CollectorRegistry
 app = Flask(__name__)
-
 
 # Подключение к Redis
 redis_client = redis.Redis(
@@ -73,12 +73,14 @@ def stats():
 
 @app.route('/metrics')
 def metrics():
-    """Эндпоинт для Prometheus"""
-    from prometheus_client import generate_latest, REGISTRY, Counter, Histogram
-    import time
+    registry = CollectorRegistry()
+    # Счетчик запросов к вашему приложению
+    c = Counter('myapp_requests_total', 'Total HTTP requests', registry=registry)
+    c.inc()  # увеличиваем при каждом вызове /metrics
 
-    # Простые метрики для демонстрации
-    return "Metrics endpoint ready for Prometheus"
+    # Можно добавить больше метрик
+    from prometheus_client import generate_latest
+    return generate_latest(registry), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
