@@ -101,6 +101,7 @@ services:
     privileged: true
     networks:
       - app-network
+    restart: unless-stopped
 
 volumes:
   postgres-data:
