@@ -1,10 +1,16 @@
 pipeline {
     agent any
-    
+
+    parameters {
+        string(name: 'APP_NAME', defaultValue: 'my-app', description: 'Docker image and application name')
+        string(name: 'GITHUB_OWNER', defaultValue: 'your-github-username', description: 'GitHub username or organization')
+        string(name: 'REPOSITORY_URL', defaultValue: 'git@github.com:your-github-username/my-app.git', description: 'SSH URL of the GitHub repository')
+    }
+
     environment {
-        APP_NAME = 'my-app'
+        APP_NAME = "${params.APP_NAME}"
         DOCKER_REGISTRY = 'ghcr.io'
-        DOCKER_USER = 'x2slow4u'
+        DOCKER_USER = "${params.GITHUB_OWNER}"
         IMAGE = "${DOCKER_REGISTRY}/${DOCKER_USER}/${APP_NAME}"
     }
 
@@ -15,7 +21,7 @@ pipeline {
                 checkout([$class: 'GitSCM',
                     branches: [[name: 'main']],
                     userRemoteConfigs: [[
-                        url: 'git@github.com:x2slow4u/my-app.git',
+                        url: "${params.REPOSITORY_URL}",
                         credentialsId: 'github-ssh'
                     ]]
                 ])
