@@ -1,7 +1,8 @@
-from flask import Flask, jsonify
 import os
+
 import psycopg2
 import redis
+from flask import Flask, jsonify
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 
 
