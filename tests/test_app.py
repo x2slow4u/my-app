@@ -30,6 +30,9 @@ def client(monkeypatch):
                 "keyspace_misses": 0,
             }
 
+        def ping(self):
+            return True
+
     monkeypatch.setattr(flask_app_module, "redis_client", FakeRedis())
     flask_app_module.app.config.update(TESTING=True)
 
@@ -49,9 +52,21 @@ def test_root_endpoint_uses_cache(client):
     second_response = client.get("/")
 
     assert first_response.status_code == 200
-    assert "Hello from my-app!" in first_response.text
-    assert "(fresh)" in first_response.text
-    assert "(from cache)" in second_response.text
+    assert first_response.json["service"] == "my-app"
+    assert first_response.json["status"] == "running"
+    assert first_response.json["source"] == "fresh"
+    assert second_response.json["source"] == "cache"
+
+
+def test_readiness_endpoint(client, monkeypatch):
+    monkeypatch.setattr(flask_app_module, "check_postgres", lambda: None)
+
+    response = client.get("/ready")
+
+    assert response.status_code == 200
+    assert response.json["app"] == "ok"
+    assert response.json["postgres"] == "ok"
+    assert response.json["redis"] == "ok"
 
 
 def test_metrics_endpoint(client):
@@ -59,4 +74,4 @@ def test_metrics_endpoint(client):
 
     assert response.status_code == 200
     assert response.headers["Content-Type"].startswith("text/plain")
-    assert b"myapp_requests_total" in response.data
+    assert b"app_http_requests_total" in response.data

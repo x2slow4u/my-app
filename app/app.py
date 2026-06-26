@@ -1,9 +1,10 @@
 import os
+import time
 
 import psycopg2
 import redis
-from flask import Flask, jsonify
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
+from flask import Flask, jsonify, request
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 
 app = Flask(__name__)
@@ -14,7 +15,16 @@ redis_client = redis.Redis(
     decode_responses=True,
 )
 
-REQUESTS_TOTAL = Counter("myapp_requests_total", "Total HTTP requests")
+REQUESTS_TOTAL = Counter(
+    "app_http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"],
+)
+REQUEST_LATENCY = Histogram(
+    "app_http_request_duration_seconds",
+    "HTTP request latency in seconds",
+    ["endpoint"],
+)
 
 
 def get_db_connection():
@@ -26,17 +36,62 @@ def get_db_connection():
     )
 
 
+def check_postgres():
+    conn = get_db_connection()
+    conn.close()
+
+
+def check_redis():
+    redis_client.ping()
+
+
+@app.before_request
+def before_request():
+    request.start_time = time.time()
+
+
+@app.after_request
+def after_request(response):
+    endpoint = request.path
+    latency = time.time() - request.start_time
+
+    REQUESTS_TOTAL.labels(
+        method=request.method,
+        endpoint=endpoint,
+        status=response.status_code,
+    ).inc()
+    REQUEST_LATENCY.labels(endpoint=endpoint).observe(latency)
+
+    return response
+
+
 @app.route("/")
 def hello():
     cache_key = "hello_message"
     cached = redis_client.get(cache_key)
 
     if cached:
-        return f"{cached} (from cache)"
+        return jsonify(
+            {
+                "service": "my-app",
+                "status": "running",
+                "environment": os.getenv("ENV", "development"),
+                "message": cached,
+                "source": "cache",
+            }
+        )
 
     message = f"Hello from my-app! Environment: {os.getenv('ENV', 'development')}"
     redis_client.setex(cache_key, 30, message)
-    return f"{message} (fresh)"
+    return jsonify(
+        {
+            "service": "my-app",
+            "status": "running",
+            "environment": os.getenv("ENV", "development"),
+            "message": message,
+            "source": "fresh",
+        }
+    )
 
 
 @app.route("/health")
@@ -44,11 +99,34 @@ def health():
     return "OK"
 
 
+@app.route("/ready")
+def readiness():
+    checks = {
+        "app": "ok",
+        "postgres": "unknown",
+        "redis": "unknown",
+    }
+
+    try:
+        check_postgres()
+        checks["postgres"] = "ok"
+    except Exception:
+        checks["postgres"] = "error"
+
+    try:
+        check_redis()
+        checks["redis"] = "ok"
+    except Exception:
+        checks["redis"] = "error"
+
+    status_code = 200 if all(value == "ok" for value in checks.values()) else 503
+    return jsonify(checks), status_code
+
+
 @app.route("/db")
 def db_test():
     try:
-        conn = get_db_connection()
-        conn.close()
+        check_postgres()
         return "Database connection OK"
     except Exception as e:
         return f"Database connection FAILED: {e}", 500
@@ -57,6 +135,7 @@ def db_test():
 @app.route("/redis")
 def redis_test():
     try:
+        check_redis()
         redis_client.set("test_key", "test_value")
         value = redis_client.get("test_key")
         return f"Redis connection OK. Test value: {value}"
@@ -81,7 +160,6 @@ def stats():
 
 @app.route("/metrics")
 def metrics():
-    REQUESTS_TOTAL.inc()
     return generate_latest(), 200, {"Content-Type": CONTENT_TYPE_LATEST}
 
 

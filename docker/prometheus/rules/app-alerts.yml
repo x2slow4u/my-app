@@ -1,0 +1,72 @@
+groups:
+  - name: app-alerts
+    rules:
+      - alert: AppDown
+        expr: up{job="web-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Flask app is unavailable
+          description: Prometheus cannot scrape the Flask app for more than 1 minute.
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(app_http_requests_total{status=~"5.."}[5m]))
+          /
+          sum(rate(app_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High HTTP 5xx error rate
+          description: More than 5% of app requests return 5xx during the last 5 minutes.
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(app_http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High p95 request latency
+          description: p95 latency is higher than 500ms for more than 5 minutes.
+
+      - alert: PostgresExporterDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: PostgreSQL exporter is down
+          description: Prometheus cannot scrape postgres-exporter.
+
+      - alert: RedisExporterDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Redis exporter is down
+          description: Prometheus cannot scrape redis-exporter.
+
+      - alert: HighHostCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High host CPU usage
+          description: Host CPU usage is higher than 80% for more than 5 minutes.
+
+      - alert: HighHostMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High host memory usage
+          description: Host memory usage is higher than 85% for more than 5 minutes.

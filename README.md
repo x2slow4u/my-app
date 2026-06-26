@@ -5,45 +5,54 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)
 
-Production-like pet project для демонстрации базовых DevOps-навыков: containerization, orchestration через Docker Compose, CI/CD, monitoring, metrics exporters, health checks и работа с секретами через environment variables.
+Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Grafana, exporters, alerts, health checks и operational docs.
 
 ## Что Демонстрирует Проект
 
-- Containerized Python Flask application с Docker.
-- Multi-service Docker Compose stack: PostgreSQL, Redis, Prometheus, Grafana, exporters и cAdvisor.
-- Jenkins pipeline: checkout, image build, smoke test, push в GHCR, deploy через Compose и integration checks.
-- GitHub Actions CI для automated tests, Compose validation и Docker image build.
+- Containerized Python Flask application с Docker и gunicorn.
+- Multi-service Docker Compose stack: Nginx, Flask app, PostgreSQL, Redis, Prometheus, Grafana, exporters, cAdvisor и node-exporter.
+- Nginx reverse proxy перед приложением.
+- GitHub Actions CI: pytest, Docker Compose validation и Docker image build.
+- Jenkins pipeline: checkout, image build, smoke test, GHCR push, deploy через Compose и integration checks.
 - Prometheus metrics endpoint на `/metrics`.
-- Health checks для приложения, PostgreSQL и Redis.
-- Чистая структура репозитория без IDE-файлов и hardcoded production secrets.
+- Application metrics: request count, status code labels и latency histogram.
+- Health checks для приложения, PostgreSQL, Redis и Nginx.
+- Grafana datasource и dashboard provisioning из репозитория.
+- Prometheus alert rules для availability, error rate, latency, CPU и RAM.
+- Docs: architecture, runbook, alerts и troubleshooting.
 
 ## Tech Stack
 
 | Область | Инструменты |
 | --- | --- |
-| Application | Python 3.10, Flask |
+| Application | Python 3.10, Flask, gunicorn |
 | Datastores | PostgreSQL, Redis |
+| Reverse proxy | Nginx |
 | Containers | Docker, Docker Compose |
 | CI/CD | Jenkins, GitHub Actions |
-| Monitoring | Prometheus, Grafana, postgres-exporter, redis-exporter, cAdvisor |
+| Monitoring | Prometheus, Grafana, postgres-exporter, redis-exporter, cAdvisor, node-exporter |
 | Testing | pytest |
 
 ## Архитектура
 
 ```mermaid
 flowchart LR
-    User["Пользователь / reviewer"] --> Web["Flask app :5000"]
+    User["Пользователь / reviewer"] --> Nginx["Nginx reverse proxy :8080"]
+    Nginx --> Web["Flask app :5000"]
     Web --> Redis["Redis :6379"]
     Web --> DB["PostgreSQL :5432"]
     Prom["Prometheus :9090"] --> Web
     Prom --> PgExp["postgres-exporter :9187"]
     Prom --> RedisExp["redis-exporter :9121"]
     Prom --> CAdvisor["cAdvisor :8082"]
+    Prom --> NodeExp["node-exporter :9100"]
     Grafana["Grafana :3000"] --> Prom
     Jenkins["Jenkins pipeline"] --> GHCR["GitHub Container Registry"]
     Jenkins --> Compose["Docker Compose deploy"]
     Actions["GitHub Actions"] --> Tests["Tests / Compose validation / Docker build"]
 ```
+
+Подробнее: [docs/architecture.md](docs/architecture.md)
 
 ## Быстрый Старт
 
@@ -59,11 +68,12 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-3. Проверить application endpoints:
+3. Проверить endpoints:
 
 ```bash
-curl http://localhost:5000/
+curl http://localhost:8080/nginx-health
 curl http://localhost:5000/health
+curl http://localhost:5000/ready
 curl http://localhost:5000/db
 curl http://localhost:5000/redis
 curl http://localhost:5000/metrics
@@ -73,12 +83,35 @@ curl http://localhost:5000/metrics
 
 | Сервис | URL |
 | --- | --- |
+| Nginx reverse proxy | http://localhost:8080 |
 | Flask app | http://localhost:5000 |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3000 |
 | cAdvisor | http://localhost:8082 |
+| Node Exporter | http://localhost:9100/metrics |
 | PostgreSQL exporter | http://localhost:9187/metrics |
 | Redis exporter | http://localhost:9121/metrics |
+
+## Monitoring И Alerts
+
+Prometheus config находится в `docker/prometheus/prometheus.yml`.
+
+Alert rules находятся в `docker/prometheus/rules/app-alerts.yml`.
+
+Grafana provisioning:
+
+```text
+docker/grafana/provisioning/
+docker/grafana/dashboards/
+```
+
+После запуска stack Grafana автоматически получает Prometheus datasource и dashboard `DevOps Monitoring Demo`.
+
+Документация:
+
+- [docs/alerts.md](docs/alerts.md)
+- [docs/runbook.md](docs/runbook.md)
+- [docs/troubleshooting.md](docs/troubleshooting.md)
 
 ## Команды Для Разработки
 
@@ -124,14 +157,6 @@ Workflow в `.github/workflows/ci.yml` запускается при push и pul
 | `github-ssh` | SSH key для GitHub checkout |
 | `github-ghcr` | GitHub username и token для GHCR push |
 
-Параметры pipeline:
-
-| Параметр | Пример |
-| --- | --- |
-| `APP_NAME` | `my-app` |
-| `GITHUB_OWNER` | `x2slow4u` |
-| `REPOSITORY_URL` | `git@github.com:x2slow4u/my-app.git` |
-
 ## Environment Variables
 
 Секреты не хранятся в репозитории. Локальные значения загружаются из `.env`; безопасный шаблон находится в `.env.example`.
@@ -149,10 +174,10 @@ Workflow в `.github/workflows/ci.yml` запускается при push и pul
 Screenshots можно добавить после запуска stack:
 
 ```text
-docs/images/app-health.png
-docs/images/prometheus-targets.png
-docs/images/grafana-dashboard.png
-docs/images/jenkins-pipeline.png
+docs/screenshots/app-health.png
+docs/screenshots/prometheus-targets.png
+docs/screenshots/grafana-dashboard.png
+docs/screenshots/jenkins-pipeline.png
 ```
 
 ## Остановка И Очистка
@@ -169,8 +194,7 @@ docker compose down -v
 
 ## Roadmap
 
-- Добавить Grafana datasource и dashboard provisioning.
-- Добавить Prometheus alert rules и Alertmanager.
+- Добавить Alertmanager.
 - Добавить image vulnerability scanning через Trivy.
 - Добавить Kubernetes manifests или Helm chart.
 - Добавить Ansible playbook для VM bootstrap.
