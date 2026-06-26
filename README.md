@@ -5,21 +5,21 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)
 
-Production-like pet project for demonstrating core DevOps skills: containerization, service orchestration, CI/CD, monitoring, metrics exporters, health checks, and secret handling through environment variables.
+Production-like pet project для демонстрации базовых DevOps-навыков: containerization, orchestration через Docker Compose, CI/CD, monitoring, metrics exporters, health checks и работа с секретами через environment variables.
 
-## What This Project Demonstrates
+## Что Демонстрирует Проект
 
-- Containerized Python Flask application with Docker.
-- Multi-service Docker Compose stack with PostgreSQL, Redis, Prometheus, Grafana, exporters, and cAdvisor.
-- Jenkins pipeline for checkout, image build, smoke test, GHCR push, Compose deploy, and integration checks.
-- GitHub Actions CI for automated tests, Compose validation, and Docker image build.
-- Prometheus metrics endpoint at `/metrics`.
-- Application, PostgreSQL, and Redis health checks.
-- Clean repository structure without IDE files or hardcoded production secrets.
+- Containerized Python Flask application с Docker.
+- Multi-service Docker Compose stack: PostgreSQL, Redis, Prometheus, Grafana, exporters и cAdvisor.
+- Jenkins pipeline: checkout, image build, smoke test, push в GHCR, deploy через Compose и integration checks.
+- GitHub Actions CI для automated tests, Compose validation и Docker image build.
+- Prometheus metrics endpoint на `/metrics`.
+- Health checks для приложения, PostgreSQL и Redis.
+- Чистая структура репозитория без IDE-файлов и hardcoded production secrets.
 
 ## Tech Stack
 
-| Area | Tools |
+| Область | Инструменты |
 | --- | --- |
 | Application | Python 3.10, Flask |
 | Datastores | PostgreSQL, Redis |
@@ -28,11 +28,11 @@ Production-like pet project for demonstrating core DevOps skills: containerizati
 | Monitoring | Prometheus, Grafana, postgres-exporter, redis-exporter, cAdvisor |
 | Testing | pytest |
 
-## Architecture
+## Архитектура
 
 ```mermaid
 flowchart LR
-    User["User / reviewer"] --> Web["Flask app :5000"]
+    User["Пользователь / reviewer"] --> Web["Flask app :5000"]
     Web --> Redis["Redis :6379"]
     Web --> DB["PostgreSQL :5432"]
     Prom["Prometheus :9090"] --> Web
@@ -45,21 +45,21 @@ flowchart LR
     Actions["GitHub Actions"] --> Tests["Tests / Compose validation / Docker build"]
 ```
 
-## Quick Start
+## Быстрый Старт
 
-1. Copy environment variables:
+1. Скопировать environment variables:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Start the stack:
+2. Запустить stack:
 
 ```bash
 docker compose up -d --build
 ```
 
-3. Check application endpoints:
+3. Проверить application endpoints:
 
 ```bash
 curl http://localhost:5000/
@@ -69,9 +69,9 @@ curl http://localhost:5000/redis
 curl http://localhost:5000/metrics
 ```
 
-## Service URLs
+## URL Сервисов
 
-| Service | URL |
+| Сервис | URL |
 | --- | --- |
 | Flask app | http://localhost:5000 |
 | Prometheus | http://localhost:9090 |
@@ -80,53 +80,53 @@ curl http://localhost:5000/metrics
 | PostgreSQL exporter | http://localhost:9187/metrics |
 | Redis exporter | http://localhost:9121/metrics |
 
-## Developer Commands
+## Команды Для Разработки
 
 ```bash
-make up       # build and start all services
-make down     # stop services
-make logs     # follow logs
-make ps       # show service status
-make test     # run pytest
-make check    # compile app.py and validate docker compose
-make clean    # stop services and remove volumes
+make up       # build и запуск всех services
+make down     # остановить services
+make logs     # смотреть logs
+make ps       # показать status services
+make test     # запустить pytest
+make check    # скомпилировать app.py и проверить docker compose
+make clean    # остановить services и удалить volumes
 ```
 
-If `make` is not installed, use the commands from the `Makefile` directly.
+Если `make` не установлен, команды из `Makefile` можно выполнять вручную.
 
 ## CI/CD
 
 ### GitHub Actions
 
-The workflow in `.github/workflows/ci.yml` runs on pushes and pull requests to `main`:
+Workflow в `.github/workflows/ci.yml` запускается при push и pull request в `main`:
 
-1. Install Python dependencies.
-2. Run pytest.
-3. Validate Docker Compose configuration.
-4. Build the Docker image.
+1. Установка Python dependencies.
+2. Запуск pytest.
+3. Проверка Docker Compose configuration.
+4. Сборка Docker image.
 
 ### Jenkins
 
-The `Jenkinsfile` contains a parameterized pipeline:
+`Jenkinsfile` содержит parameterized pipeline:
 
-1. Checkout from GitHub over SSH.
-2. Build Docker image.
-3. Run a smoke test.
-4. Tag and push the image to GitHub Container Registry.
-5. Deploy with Docker Compose.
-6. Run integration checks for the app and monitoring services.
-7. Stop the test environment and log out from the registry.
+1. Checkout из GitHub по SSH.
+2. Сборка Docker image.
+3. Запуск smoke test.
+4. Tag и push image в GitHub Container Registry.
+5. Deploy через Docker Compose.
+6. Integration checks для приложения и monitoring services.
+7. Остановка test environment и logout из registry.
 
-Required Jenkins credentials:
+Необходимые Jenkins credentials:
 
-| ID | Purpose |
+| ID | Назначение |
 | --- | --- |
-| `github-ssh` | SSH key for GitHub checkout |
-| `github-ghcr` | GitHub username and token for GHCR push |
+| `github-ssh` | SSH key для GitHub checkout |
+| `github-ghcr` | GitHub username и token для GHCR push |
 
-Pipeline parameters:
+Параметры pipeline:
 
-| Parameter | Example |
+| Параметр | Пример |
 | --- | --- |
 | `APP_NAME` | `my-app` |
 | `GITHUB_OWNER` | `x2slow4u` |
@@ -134,19 +134,19 @@ Pipeline parameters:
 
 ## Environment Variables
 
-Secrets are not stored in the repository. Local values are loaded from `.env`; the safe template is in `.env.example`.
+Секреты не хранятся в репозитории. Локальные значения загружаются из `.env`; безопасный шаблон находится в `.env.example`.
 
-| Variable | Default | Purpose |
+| Variable | Default | Назначение |
 | --- | --- | --- |
 | `ENV` | `production` | Application environment |
 | `POSTGRES_DB` | `app` | PostgreSQL database |
 | `POSTGRES_USER` | `app` | PostgreSQL user |
-| `POSTGRES_PASSWORD` | `change_me` | PostgreSQL password for local demo |
-| `GRAFANA_ADMIN_PASSWORD` | `change_me` | Grafana admin password for local demo |
+| `POSTGRES_PASSWORD` | `change_me` | PostgreSQL password для local demo |
+| `GRAFANA_ADMIN_PASSWORD` | `change_me` | Grafana admin password для local demo |
 
-## Screenshots
+## Скриншоты
 
-Screenshots can be added after running the stack:
+Screenshots можно добавить после запуска stack:
 
 ```text
 docs/images/app-health.png
@@ -155,13 +155,13 @@ docs/images/grafana-dashboard.png
 docs/images/jenkins-pipeline.png
 ```
 
-## Stop And Clean Up
+## Остановка И Очистка
 
 ```bash
 docker compose down
 ```
 
-Remove volumes as well:
+Также можно удалить volumes:
 
 ```bash
 docker compose down -v
@@ -169,8 +169,8 @@ docker compose down -v
 
 ## Roadmap
 
-- Add Grafana datasource and dashboard provisioning.
-- Add Prometheus alert rules and Alertmanager.
-- Add image vulnerability scanning with Trivy.
-- Add Kubernetes manifests or a Helm chart.
-- Add Ansible playbook for VM bootstrap.
+- Добавить Grafana datasource и dashboard provisioning.
+- Добавить Prometheus alert rules и Alertmanager.
+- Добавить image vulnerability scanning через Trivy.
+- Добавить Kubernetes manifests или Helm chart.
+- Добавить Ansible playbook для VM bootstrap.

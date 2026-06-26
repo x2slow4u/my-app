@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'APP_NAME', defaultValue: 'my-app', description: 'Docker image and application name')
-        string(name: 'GITHUB_OWNER', defaultValue: 'your-github-username', description: 'GitHub username or organization')
-        string(name: 'REPOSITORY_URL', defaultValue: 'git@github.com:your-github-username/my-app.git', description: 'SSH URL of the GitHub repository')
+        string(name: 'APP_NAME', defaultValue: 'my-app', description: 'Имя application и Docker image')
+        string(name: 'GITHUB_OWNER', defaultValue: 'your-github-username', description: 'GitHub username или organization')
+        string(name: 'REPOSITORY_URL', defaultValue: 'git@github.com:your-github-username/my-app.git', description: 'SSH URL GitHub repository')
     }
 
     environment {
@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo "Cloning ${APP_NAME} repository..."
+                echo "Клонирование repository ${APP_NAME}..."
                 checkout([$class: 'GitSCM',
                     branches: [[name: 'main']],
                     userRemoteConfigs: [[
@@ -32,10 +32,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    echo "Building Docker image..."
+                    echo "Сборка Docker image..."
                     docker build -t ${APP_NAME}:${BUILD_NUMBER} .
                     docker tag ${APP_NAME}:${BUILD_NUMBER} ${APP_NAME}:latest
-                    echo "Image built: ${APP_NAME}:${BUILD_NUMBER}"
+                    echo "Docker image собран: ${APP_NAME}:${BUILD_NUMBER}"
                 '''
             }
         }
@@ -43,8 +43,8 @@ pipeline {
         stage('Test Image') {
             steps {
                 sh '''
-                    echo "Testing image..."
-                    docker run --rm ${APP_NAME}:${BUILD_NUMBER} echo "Container works!"
+                    echo "Проверка Docker image..."
+                    docker run --rm ${APP_NAME}:${BUILD_NUMBER} echo "Container работает!"
                 '''
             }
         }
@@ -52,10 +52,10 @@ pipeline {
         stage('Tag for GHCR') {
             steps {
                 sh '''
-                    echo "Tagging image for GitHub Container Registry..."
+                    echo "Создание tags для GitHub Container Registry..."
                     docker tag ${APP_NAME}:${BUILD_NUMBER} ${IMAGE}:${BUILD_NUMBER}
                     docker tag ${APP_NAME}:latest ${IMAGE}:latest
-                    echo "Tags created:"
+                    echo "Tags созданы:"
                     docker images | grep ${APP_NAME}
                 '''
             }
@@ -69,16 +69,16 @@ pipeline {
                     passwordVariable: 'GH_TOKEN'
                 )]) {
                     sh '''
-                        echo "Logging into GitHub Container Registry..."
+                        echo "Login в GitHub Container Registry..."
                         echo ${GH_TOKEN} | docker login ghcr.io -u ${GH_USERNAME} --password-stdin
 
-                        echo "Pushing image: ${IMAGE}:${BUILD_NUMBER}"
+                        echo "Push image: ${IMAGE}:${BUILD_NUMBER}"
                         docker push ${IMAGE}:${BUILD_NUMBER}
 
-                        echo "Pushing image: ${IMAGE}:latest"
+                        echo "Push image: ${IMAGE}:latest"
                         docker push ${IMAGE}:latest
 
-                        echo "Push completed"
+                        echo "Push завершен"
                     '''
                 }
             }
@@ -87,7 +87,7 @@ pipeline {
         stage('Deploy with Compose') {
             steps {
                 sh '''
-                    echo "Starting services with Docker Compose..."
+                    echo "Запуск services через Docker Compose..."
                     docker-compose up -d
                     sleep 5
                     docker-compose ps
@@ -98,11 +98,11 @@ pipeline {
         stage('Integration Test') {
             steps {
                 sh '''
-                    echo "Testing web service..."
+                    echo "Проверка web service..."
                     curl -f http://localhost:5000/ || exit 1
                     curl -f http://localhost:5000/health || exit 1
                     curl -f http://localhost:5000/db || exit 1
-                    echo "All tests passed!"
+                    echo "Все tests пройдены!"
                 '''
             }
         }
@@ -110,16 +110,16 @@ pipeline {
         stage('Test Monitoring') {
             steps {
                 sh '''
-                    echo "Testing Prometheus..."
+                    echo "Проверка Prometheus..."
                     curl -f http://localhost:9090/-/healthy || exit 1
 
-                    echo "Waiting for Grafana to be ready..."
+                    echo "Ожидание готовности Grafana..."
                     sleep 10
 
-                    echo "Testing Grafana..."
+                    echo "Проверка Grafana..."
                     curl -f http://localhost:3000/api/health || exit 1
 
-                    echo "Monitoring services are healthy!"
+                    echo "Monitoring services healthy!"
                 '''
             }
         }
@@ -127,7 +127,7 @@ pipeline {
          stage('Stop Services') {
              steps {
                  sh '''
-                     echo "Stopping services..."
+                     echo "Остановка services..."
                      docker-compose down
                  '''
              }
@@ -136,9 +136,9 @@ pipeline {
         stage('Clean Up') {
             steps {
                 sh '''
-                    echo "Cleaning up..."
+                    echo "Очистка..."
                     docker logout ghcr.io || true
-                    echo "Cleanup completed"
+                    echo "Очистка завершена"
                 '''
             }
         }
@@ -155,7 +155,7 @@ pipeline {
             echo "Build number: ${BUILD_NUMBER}"
         }
         always {
-            echo "Pipeline finished. Build: ${BUILD_NUMBER}, Result: ${currentBuild.result}"
+            echo "Pipeline завершен. Build: ${BUILD_NUMBER}, Result: ${currentBuild.result}"
         }
     }
 }
