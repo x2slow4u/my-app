@@ -171,14 +171,27 @@ Workflow в `.github/workflows/ci.yml` запускается при push и pul
 
 ## Скриншоты
 
-Screenshots можно добавить после запуска stack:
+Проект проверен на VM. Ниже screenshots, которые показывают, что CI/CD, monitoring, alerts, Grafana provisioning и Nginx reverse proxy реально работают.
 
-```text
-docs/screenshots/app-health.png
-docs/screenshots/prometheus-targets.png
-docs/screenshots/grafana-dashboard.png
-docs/screenshots/jenkins-pipeline.png
-```
+### GitHub Actions
+
+![GitHub Actions](docs/screenshots/github-actions.png)
+
+### Prometheus Targets
+
+![Prometheus Targets](docs/screenshots/prometheus-targets.png)
+
+### Prometheus Rules
+
+![Prometheus Rules](docs/screenshots/prometheus-rules.png)
+
+### Grafana Dashboard
+
+![Grafana Dashboard](docs/screenshots/grafana-dashboard.png)
+
+### Nginx App
+
+![Nginx App](docs/screenshots/nginx-app.png)
 
 ## Остановка И Очистка
 
