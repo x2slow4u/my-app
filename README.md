@@ -4,6 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)
+![Security](https://img.shields.io/badge/Security-Trivy%20%2B%20Hadolint%20%2B%20pip--audit-green)
 
 Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Grafana, exporters, alerts, health checks и operational docs.
 
@@ -13,6 +14,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 - Multi-service Docker Compose stack: Nginx, Flask app, PostgreSQL, Redis, Prometheus, Grafana, exporters, cAdvisor и node-exporter.
 - Nginx reverse proxy перед приложением.
 - GitHub Actions CI: pytest, Docker Compose validation и Docker image build.
+- DevSecOps checks: Hadolint, pip-audit и Trivy image scan.
 - Jenkins pipeline: checkout, image build, smoke test, GHCR push, deploy через Compose и integration checks.
 - Prometheus metrics endpoint на `/metrics`.
 - Application metrics: request count, status code labels и latency histogram.
@@ -135,8 +137,13 @@ Workflow в `.github/workflows/ci.yml` запускается при push и pul
 
 1. Установка Python dependencies.
 2. Запуск pytest.
-3. Проверка Docker Compose configuration.
-4. Сборка Docker image.
+3. Проверка Python dependencies через `pip-audit`.
+4. Проверка Docker Compose configuration.
+5. Проверка Dockerfile через `Hadolint`.
+6. Сборка Docker image.
+7. Trivy scan Docker image на HIGH/CRITICAL vulnerabilities.
+
+Подробнее: [docs/security.md](docs/security.md)
 
 ### Jenkins
 

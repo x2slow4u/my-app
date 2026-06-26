@@ -32,8 +32,25 @@ jobs:
       - name: Запуск tests
         run: python -m pytest -q
 
+      - name: Проверка Python dependencies
+        run: python -m pip_audit -r app/requirements.txt
+
       - name: Проверка Docker Compose
         run: docker compose config --quiet
 
+      - name: Проверка Dockerfile через Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
       - name: Сборка Docker image
         run: docker build -t my-app:${{ github.sha }} .
+
+      - name: Trivy scan Docker image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: my-app:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
