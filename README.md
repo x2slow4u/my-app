@@ -215,7 +215,19 @@ docker compose down -v
 
 ## Roadmap
 
-- Добавить Alertmanager.
-- Добавить image vulnerability scanning через Trivy.
-- Добавить Kubernetes manifests или Helm chart.
-- Добавить Ansible playbook для VM bootstrap.
+### Готово
+
+- Dockerfile hardening: non-root user, healthcheck, gunicorn.
+- Docker Compose stack: Nginx, Flask app, PostgreSQL, Redis, Prometheus, Grafana, exporters, cAdvisor, node-exporter.
+- Monitoring: Prometheus scrape config, Grafana datasource/dashboard provisioning, screenshots.
+- Alerts: Prometheus alert rules для app availability, error rate, latency, exporters, CPU и RAM.
+- CI/CD: GitHub Actions pipeline и Jenkinsfile.
+- DevSecOps: pip-audit, Hadolint, Trivy image scan, runtime image без `pip`, `setuptools`, `wheel`.
+- Documentation: architecture, runbook, alerts, troubleshooting, security notes.
+
+### Следующие Шаги
+
+- Publish Docker image в GHCR после успешных tests/security scans.
+- Добавить Alertmanager и пример notification route.
+- Подготовить отдельный Kubernetes/Helm проект: manifests, Helm chart, probes, resource limits, HPA, rollback demo.
+- Подготовить отдельный Terraform/Ansible проект для VM bootstrap и automated deploy.
