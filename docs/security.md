@@ -27,4 +27,5 @@ Workflow должен проходить зеленым статусом. Есл
 - зависимости фиксируются в `requirements.txt`;
 - Dockerfile проверяется линтером;
 - image сканируется перед публикацией или deploy;
+- build tooling (`pip`, `setuptools`, `wheel`) удаляется из runtime image после установки dependencies;
 - security checks встроены в CI, а не запускаются вручную.

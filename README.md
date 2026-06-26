@@ -15,6 +15,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 - Nginx reverse proxy перед приложением.
 - GitHub Actions CI: pytest, Docker Compose validation и Docker image build.
 - DevSecOps checks: Hadolint, pip-audit и Trivy image scan.
+- Runtime image hardening: build tooling (`pip`, `setuptools`, `wheel`) удаляется после установки dependencies.
 - Jenkins pipeline: checkout, image build, smoke test, GHCR push, deploy через Compose и integration checks.
 - Prometheus metrics endpoint на `/metrics`.
 - Application metrics: request count, status code labels и latency histogram.
