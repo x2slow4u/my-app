@@ -42,7 +42,7 @@ docker compose exec prometheus promtool check config /etc/prometheus/prometheus.
 Проверить health endpoint:
 
 ```bash
-curl http://localhost:8080/nginx-health
+curl http://localhost:8088/nginx-health
 docker compose logs nginx
 ```
 

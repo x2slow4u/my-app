@@ -37,7 +37,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 
 ```mermaid
 flowchart LR
-    User["Пользователь / reviewer"] --> Nginx["Nginx reverse proxy :8080"]
+    User["Пользователь / reviewer"] --> Nginx["Nginx reverse proxy :8088"]
     Nginx --> Web["Flask app :5000"]
     Web --> Redis["Redis :6379"]
     Web --> DB["PostgreSQL :5432"]
@@ -71,7 +71,7 @@ docker compose up -d --build
 3. Проверить endpoints:
 
 ```bash
-curl http://localhost:8080/nginx-health
+curl http://localhost:8088/nginx-health
 curl http://localhost:5000/health
 curl http://localhost:5000/ready
 curl http://localhost:5000/db
@@ -83,7 +83,7 @@ curl http://localhost:5000/metrics
 
 | Сервис | URL |
 | --- | --- |
-| Nginx reverse proxy | http://localhost:8080 |
+| Nginx reverse proxy | http://localhost:8088 |
 | Flask app | http://localhost:5000 |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3000 |

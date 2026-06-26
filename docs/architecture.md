@@ -6,7 +6,7 @@
 
 | Сервис | Назначение | Порт |
 | --- | --- | --- |
-| `nginx` | Reverse proxy перед Flask app | `8080 -> 80` |
+| `nginx` | Reverse proxy перед Flask app | `8088 -> 80` |
 | `web` | Flask application с `/health`, `/ready`, `/metrics` | `5000` |
 | `db` | PostgreSQL database | internal `5432` |
 | `redis` | Redis cache | internal `6379` |
@@ -21,7 +21,7 @@
 
 ```mermaid
 flowchart LR
-    User["User"] --> Nginx["Nginx reverse proxy :8080"]
+    User["User"] --> Nginx["Nginx reverse proxy :8088"]
     Nginx --> Web["Flask app :5000"]
     Web --> Redis["Redis cache"]
     Web --> DB["PostgreSQL"]

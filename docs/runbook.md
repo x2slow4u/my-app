@@ -13,7 +13,7 @@ docker compose up -d --build
 
 ```bash
 docker compose ps
-curl http://localhost:8080/nginx-health
+curl http://localhost:8088/nginx-health
 curl http://localhost:5000/health
 curl http://localhost:5000/ready
 curl http://localhost:5000/metrics
