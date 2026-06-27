@@ -2,8 +2,6 @@
 
 Проект использует базовый DevSecOps-подход: security checks встроены в CI pipeline и выполняются автоматически при каждом push или pull request в `main`.
 
-Цель не в том, чтобы “поставить галочку”, а в том, чтобы не пропускать в main код, Dockerfile или Docker image с очевидными проблемами.
-
 ## Что Проверяется
 
 | Проверка | Инструмент | Что Покрывает |
@@ -69,31 +67,6 @@ wheel-missing
 /usr/local/bin/python: No module named pip
 ```
 
-## Почему Удаление pip/setuptools/wheel Полезно
-
-`pip`, `setuptools` и `wheel` нужны для установки dependencies на этапе build, но приложению в runtime они не нужны.
-
-Удаление этих tools:
-
-- уменьшает attack surface;
-- уменьшает количество packages, которые может найти scanner;
-- снижает риск supply chain атак внутри runtime container;
-- делает image ближе к production-подходу.
-
-## Что Такое Supply Chain Security
-
-Supply chain security - это защита цепочки поставки ПО: dependencies, build tools, container image, CI/CD pipeline и registry.
-
-Уязвимость может находиться не только в коде приложения, но и в:
-
-- Python package;
-- base image;
-- system package внутри image;
-- Dockerfile;
-- CI/CD action;
-- registry credentials;
-- runtime tooling.
-
 ## Публикация Artifact
 
 Docker image публикуется в GitHub Container Registry только после успешного прохождения pipeline:
@@ -116,20 +89,3 @@ ghcr.io/x2slow4u/my-app:<commit-sha>
 - runtime image hardened;
 - secrets не хранятся в repository;
 - GHCR publish выполняется через short-lived `GITHUB_TOKEN`.
-
-Это базовый DevSecOps уровень, а не полный enterprise security process.
-
-Что пока не сделано:
-
-- нет SBOM artifact;
-- нет image signing;
-- нет policy enforcement через OPA/Conftest;
-- нет Dependabot configuration;
-- нет protected branch rules в repository settings.
-
-## Следующие Улучшения
-
-- Добавить SBOM generation через Trivy или Syft.
-- Добавить Dependabot для Python dependencies и GitHub Actions.
-- Добавить branch protection rule: запрет merge без зеленого CI.
-- Добавить image signing через Cosign.
