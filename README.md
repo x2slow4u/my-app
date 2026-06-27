@@ -5,6 +5,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)
 ![Security](https://img.shields.io/badge/Security-Trivy%20%2B%20Hadolint%20%2B%20pip--audit-green)
+![GHCR](https://img.shields.io/badge/GHCR-ghcr.io%2Fx2slow4u%2Fmy--app-blue)
 
 Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Grafana, exporters, alerts, health checks и operational docs.
 
@@ -16,6 +17,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 - GitHub Actions CI: pytest, Docker Compose validation и Docker image build.
 - DevSecOps checks: Hadolint, pip-audit и Trivy image scan.
 - Runtime image hardening: build tooling (`pip`, `setuptools`, `wheel`) удаляется после установки dependencies.
+- Artifact publishing: Docker image публикуется в GitHub Container Registry после успешных tests и security checks.
 - Jenkins pipeline: checkout, image build, smoke test, GHCR push, deploy через Compose и integration checks.
 - Prometheus metrics endpoint на `/metrics`.
 - Application metrics: request count, status code labels и latency histogram.
@@ -52,7 +54,8 @@ flowchart LR
     Grafana["Grafana :3000"] --> Prom
     Jenkins["Jenkins pipeline"] --> GHCR["GitHub Container Registry"]
     Jenkins --> Compose["Docker Compose deploy"]
-    Actions["GitHub Actions"] --> Tests["Tests / Compose validation / Docker build"]
+    Actions["GitHub Actions"] --> Tests["Tests / security scans / Docker build"]
+    Actions --> GHCR
 ```
 
 Подробнее: [docs/architecture.md](docs/architecture.md)
@@ -143,6 +146,14 @@ Workflow в `.github/workflows/ci.yml` запускается при push и pul
 5. Проверка Dockerfile через `Hadolint`.
 6. Сборка Docker image.
 7. Trivy scan Docker image на HIGH/CRITICAL vulnerabilities.
+8. Publish Docker image в GitHub Container Registry при push в `main`.
+
+Published image:
+
+```text
+ghcr.io/x2slow4u/my-app:latest
+ghcr.io/x2slow4u/my-app:<commit-sha>
+```
 
 Подробнее: [docs/security.md](docs/security.md)
 
@@ -223,11 +234,11 @@ docker compose down -v
 - Alerts: Prometheus alert rules для app availability, error rate, latency, exporters, CPU и RAM.
 - CI/CD: GitHub Actions pipeline и Jenkinsfile.
 - DevSecOps: pip-audit, Hadolint, Trivy image scan, runtime image без `pip`, `setuptools`, `wheel`.
+- Artifact publishing: Docker image публикуется в GHCR после успешного GitHub Actions pipeline.
 - Documentation: architecture, runbook, alerts, troubleshooting, security notes.
 
 ### Следующие Шаги
 
-- Publish Docker image в GHCR после успешных tests/security scans.
 - Добавить Alertmanager и пример notification route.
 - Подготовить отдельный Kubernetes/Helm проект: manifests, Helm chart, probes, resource limits, HPA, rollback demo.
 - Подготовить отдельный Terraform/Ansible проект для VM bootstrap и automated deploy.

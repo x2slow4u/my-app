@@ -12,6 +12,7 @@
 | Dockerfile lint | `Hadolint` | Best practices и типовые ошибки в Dockerfile |
 | Docker image scan | `Trivy` | HIGH/CRITICAL vulnerabilities внутри собранного Docker image |
 | Runtime image hardening | Dockerfile | Уменьшение attack surface runtime image |
+| Artifact publishing | GHCR | Публикация image только после успешных tests и security checks |
 
 ## Где Это Запускается
 
@@ -30,6 +31,7 @@ GitHub Actions workflow:
 5. `Hadolint` проверяет Dockerfile.
 6. Docker image собирается.
 7. `Trivy` сканирует собранный image.
+8. При push в `main` image публикуется в GitHub Container Registry.
 
 Если `pip-audit`, `Hadolint` или `Trivy` находят критичную проблему, pipeline завершается с ошибкой.
 
@@ -82,7 +84,7 @@ wheel-missing
 
 Supply chain security - это защита цепочки поставки ПО: dependencies, build tools, container image, CI/CD pipeline и registry.
 
-Для DevOps это важно, потому что уязвимость может быть не только в коде приложения, но и в:
+Уязвимость может находиться не только в коде приложения, но и в:
 
 - Python package;
 - base image;
@@ -92,29 +94,28 @@ Supply chain security - это защита цепочки поставки ПО
 - registry credentials;
 - runtime tooling.
 
-## Почему Это Полезно Для Портфолио
+## Публикация Artifact
 
-Этот блок показывает, что проект закрывает не только запуск инфраструктуры, но и базовую security maturity:
+Docker image публикуется в GitHub Container Registry только после успешного прохождения pipeline:
+
+```text
+ghcr.io/x2slow4u/my-app:latest
+ghcr.io/x2slow4u/my-app:<commit-sha>
+```
+
+Для pull request выполняются tests, lint и security scans, но push в registry отключен. Это защищает registry от публикации image из непроверенных изменений.
+
+## Текущий Security Baseline
+
+Текущий baseline:
 
 - dependencies фиксируются в `requirements.txt`;
 - vulnerability scanning встроен в CI;
 - Dockerfile проверяется линтером;
-- Docker image сканируется перед deploy/publish;
+- Docker image сканируется перед publish;
 - runtime image hardened;
 - secrets не хранятся в repository;
-- security checks подтверждаются зеленым GitHub Actions run.
-
-## Как Объяснить На Собеседовании
-
-Короткий ответ:
-
-> Я добавил DevSecOps checks в GitHub Actions: `pip-audit` проверяет Python dependencies, `Hadolint` проверяет Dockerfile, `Trivy` сканирует Docker image. Когда scanners нашли CVE в Flask/Werkzeug и runtime tooling, я обновил dependencies и hardened Docker image: удалил `pip`, `setuptools`, `wheel` после установки packages. Теперь pipeline падает, если появляются HIGH/CRITICAL vulnerabilities.
-
-Более подробный ответ:
-
-> Я хотел показать, что CI/CD pipeline должен проверять не только tests и build, но и безопасность artifact. Поэтому после tests запускается dependency audit, Dockerfile lint и image scan. Это помогает ловить проблемы до deploy. В проекте Trivy показал, что scanner может находить vulnerabilities не только в application dependencies, но и в tools внутри image. Я исправил это через runtime image hardening.
-
-## Ограничения Текущего Подхода
+- GHCR publish выполняется через short-lived `GITHUB_TOKEN`.
 
 Это базовый DevSecOps уровень, а не полный enterprise security process.
 
@@ -124,12 +125,10 @@ Supply chain security - это защита цепочки поставки ПО
 - нет image signing;
 - нет policy enforcement через OPA/Conftest;
 - нет Dependabot configuration;
-- image пока не публикуется в GHCR;
 - нет protected branch rules в repository settings.
 
 ## Следующие Улучшения
 
-- Publish Docker image в GHCR после successful security scans.
 - Добавить SBOM generation через Trivy или Syft.
 - Добавить Dependabot для Python dependencies и GitHub Actions.
 - Добавить branch protection rule: запрет merge без зеленого CI.
