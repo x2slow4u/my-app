@@ -7,12 +7,12 @@
 ![Security](https://img.shields.io/badge/Security-Trivy%20%2B%20Hadolint%20%2B%20pip--audit-green)
 ![GHCR](https://img.shields.io/badge/GHCR-ghcr.io%2Fx2slow4u%2Fmy--app-blue)
 
-Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Grafana, exporters, alerts, health checks и operational docs.
+Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Alertmanager, Grafana, exporters, alerts, health checks и operational docs.
 
 ## Что Демонстрирует Проект
 
 - Containerized Python Flask application с Docker и gunicorn.
-- Multi-service Docker Compose stack: Nginx, Flask app, PostgreSQL, Redis, Prometheus, Grafana, exporters, cAdvisor и node-exporter.
+- Multi-service Docker Compose stack: Nginx, Flask app, PostgreSQL, Redis, Prometheus, Alertmanager, Grafana, exporters, cAdvisor и node-exporter.
 - Nginx reverse proxy перед приложением.
 - GitHub Actions CI: pytest, Docker Compose validation и Docker image build.
 - DevSecOps checks: Hadolint, pip-audit и Trivy image scan.
@@ -24,6 +24,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 - Health checks для приложения, PostgreSQL, Redis и Nginx.
 - Grafana datasource и dashboard provisioning из репозитория.
 - Prometheus alert rules для availability, error rate, latency, CPU и RAM.
+- Alertmanager route для grouping, deduplication и notification receiver.
 - Docs: architecture, runbook, alerts и troubleshooting.
 
 ## Tech Stack
@@ -35,7 +36,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 | Reverse proxy | Nginx |
 | Containers | Docker, Docker Compose |
 | CI/CD | Jenkins, GitHub Actions |
-| Monitoring | Prometheus, Grafana, postgres-exporter, redis-exporter, cAdvisor, node-exporter |
+| Monitoring | Prometheus, Alertmanager, Grafana, postgres-exporter, redis-exporter, cAdvisor, node-exporter |
 | Testing | pytest |
 
 ## Архитектура
@@ -51,6 +52,7 @@ flowchart LR
     Prom --> RedisExp["redis-exporter :9121"]
     Prom --> CAdvisor["cAdvisor :8082"]
     Prom --> NodeExp["node-exporter :9100"]
+    Prom --> Alertmanager["Alertmanager :9093"]
     Grafana["Grafana :3000"] --> Prom
     Jenkins["Jenkins pipeline"] --> GHCR["GitHub Container Registry"]
     Jenkins --> Compose["Docker Compose deploy"]
@@ -92,6 +94,7 @@ curl http://localhost:5000/metrics
 | Nginx reverse proxy | http://localhost:8088 |
 | Flask app | http://localhost:5000 |
 | Prometheus | http://localhost:9090 |
+| Alertmanager | http://localhost:9093 |
 | Grafana | http://localhost:3000 |
 | cAdvisor | http://localhost:8082 |
 | Node Exporter | http://localhost:9100/metrics |
@@ -103,6 +106,8 @@ curl http://localhost:5000/metrics
 Prometheus config находится в `docker/prometheus/prometheus.yml`.
 
 Alert rules находятся в `docker/prometheus/rules/app-alerts.yml`.
+
+Alertmanager config находится в `docker/alertmanager/alertmanager.yml`.
 
 Grafana provisioning:
 

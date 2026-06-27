@@ -91,6 +91,23 @@ services:
       - "--storage.tsdb.path=/prometheus"
     networks:
       - app-network
+    depends_on:
+      alertmanager:
+        condition: service_started
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./docker/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    networks:
+      - app-network
     restart: unless-stopped
 
   grafana:
@@ -167,6 +184,7 @@ volumes:
   postgres-data:
   redis-data:
   prometheus-data:
+  alertmanager-data:
   grafana-data:
 
 networks:

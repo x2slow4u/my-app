@@ -46,6 +46,22 @@ jobs:
       - name: Проверка Docker Compose
         run: docker compose config --quiet
 
+      - name: Проверка Prometheus config
+        run: |
+          docker run --rm \
+            -v "$PWD/docker/prometheus:/etc/prometheus:ro" \
+            --entrypoint promtool \
+            prom/prometheus:latest \
+            check config /etc/prometheus/prometheus.yml
+
+      - name: Проверка Alertmanager config
+        run: |
+          docker run --rm \
+            -v "$PWD/docker/alertmanager:/etc/alertmanager:ro" \
+            --entrypoint amtool \
+            prom/alertmanager:latest \
+            check-config /etc/alertmanager/alertmanager.yml
+
       - name: Проверка Dockerfile через Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:

@@ -11,6 +11,7 @@
 | `db` | PostgreSQL database | internal `5432` |
 | `redis` | Redis cache | internal `6379` |
 | `prometheus` | Metrics collection и alert rules | `9090` |
+| `alertmanager` | Alert routing, grouping и deduplication | `9093` |
 | `grafana` | Dashboards и visualization | `3000` |
 | `postgres-exporter` | PostgreSQL metrics | `9187` |
 | `redis-exporter` | Redis metrics | `9121` |
@@ -30,6 +31,7 @@ flowchart LR
     Prom --> RedisExp["redis-exporter"]
     Prom --> CAdvisor["cAdvisor"]
     Prom --> NodeExp["node-exporter"]
+    Prom --> Alertmanager["Alertmanager"]
     Grafana["Grafana"] --> Prom
 ```
 
@@ -46,3 +48,5 @@ Prometheus собирает:
 - host metrics через `node-exporter`.
 
 Grafana автоматически получает Prometheus datasource и dashboard из `docker/grafana/provisioning`.
+
+Alertmanager получает firing alerts от Prometheus и применяет routing/grouping policy из `docker/alertmanager/alertmanager.yml`.

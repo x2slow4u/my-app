@@ -88,4 +88,4 @@ ghcr.io/x2slow4u/my-app:<commit-sha>
 - Docker image сканируется перед publish;
 - runtime image hardened;
 - secrets не хранятся в repository;
-- GHCR publish выполняется через short-lived `GITHUB_TOKEN`.
+- GHCR publish выполняется через repository secret `GHCR_TOKEN` с минимально необходимым доступом к package registry.
