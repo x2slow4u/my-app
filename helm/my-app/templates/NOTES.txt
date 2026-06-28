@@ -1,0 +1,9 @@
+Application service:
+  kubectl get svc {{ include "my-app.fullname" . }}-web
+
+Port-forward for local check:
+  kubectl port-forward svc/{{ include "my-app.fullname" . }}-web 8080:{{ .Values.service.port }}
+
+Health checks:
+  curl http://localhost:8080/health
+  curl http://localhost:8080/ready

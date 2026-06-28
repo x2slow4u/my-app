@@ -46,6 +46,20 @@ jobs:
       - name: Проверка Docker Compose
         run: docker compose config --quiet
 
+      - name: Проверка Helm chart
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            alpine/helm:3.15.4 \
+            lint helm/my-app
+
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            alpine/helm:3.15.4 \
+            template my-app helm/my-app > /tmp/my-app-rendered.yaml
+
       - name: Проверка Prometheus config
         run: |
           docker run --rm \

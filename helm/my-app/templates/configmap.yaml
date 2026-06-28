@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "my-app.fullname" . }}-config
+  labels:
+    {{- include "my-app.labels" . | nindent 4 }}
+data:
+  ENV: {{ .Values.app.env | quote }}
+  DB_HOST: {{ include "my-app.fullname" . }}-postgres
+  DB_NAME: {{ .Values.postgres.database | quote }}
+  DB_USER: {{ .Values.postgres.username | quote }}
+  REDIS_HOST: {{ include "my-app.fullname" . }}-redis
+  REDIS_PORT: "6379"

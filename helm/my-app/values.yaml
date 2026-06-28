@@ -1,0 +1,47 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/x2slow4u/my-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+app:
+  env: production
+
+postgres:
+  image: postgres:15-alpine
+  database: app
+  username: app
+  password: change_me
+  storageSize: 1Gi
+
+redis:
+  image: redis:7-alpine
+  storageSize: 512Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+ingress:
+  enabled: false
+  className: ""
+  host: my-app.local
+  path: /

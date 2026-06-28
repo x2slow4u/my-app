@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-app.fullname" . }}-web
+  labels:
+    {{- include "my-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "my-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "my-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: {{ include "my-app.fullname" . }}-config
+            - secretRef:
+                name: {{ include "my-app.fullname" . }}-secret
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

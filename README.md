@@ -7,12 +7,13 @@
 ![Security](https://img.shields.io/badge/Security-Trivy%20%2B%20Hadolint%20%2B%20pip--audit-green)
 ![GHCR](https://img.shields.io/badge/GHCR-ghcr.io%2Fx2slow4u%2Fmy--app-blue)
 
-Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Alertmanager, Grafana, exporters, alerts, health checks и operational docs.
+Production-like pet project для демонстрации DevOps-навыков: Docker, Docker Compose, Kubernetes, Helm, Nginx reverse proxy, PostgreSQL, Redis, CI/CD, Prometheus, Alertmanager, Grafana, exporters, alerts, health checks и operational docs.
 
 ## Что Демонстрирует Проект
 
 - Containerized Python Flask application с Docker и gunicorn.
 - Multi-service Docker Compose stack: Nginx, Flask app, PostgreSQL, Redis, Prometheus, Alertmanager, Grafana, exporters, cAdvisor и node-exporter.
+- Helm chart для Kubernetes deployment: app, PostgreSQL, Redis, probes, resources, HPA и rollback demo.
 - Nginx reverse proxy перед приложением.
 - GitHub Actions CI: pytest, Docker Compose validation и Docker image build.
 - DevSecOps checks: Hadolint, pip-audit и Trivy image scan.
@@ -35,6 +36,7 @@ Production-like pet project для демонстрации DevOps-навыко�
 | Datastores | PostgreSQL, Redis |
 | Reverse proxy | Nginx |
 | Containers | Docker, Docker Compose |
+| Kubernetes | Kubernetes manifests через Helm chart |
 | CI/CD | Jenkins, GitHub Actions |
 | Monitoring | Prometheus, Alertmanager, Grafana, postgres-exporter, redis-exporter, cAdvisor, node-exporter |
 | Testing | pytest |
@@ -162,6 +164,37 @@ ghcr.io/x2slow4u/my-app:<commit-sha>
 
 Подробнее: [docs/security.md](docs/security.md)
 
+## Kubernetes / Helm
+
+Helm chart находится в `helm/my-app`.
+
+Проверка chart:
+
+```bash
+helm lint helm/my-app
+helm template my-app helm/my-app
+```
+
+Установка в Kubernetes:
+
+```bash
+helm upgrade --install my-app ./helm/my-app \
+  --namespace my-app \
+  --create-namespace
+```
+
+Проверка приложения:
+
+```bash
+kubectl get pods -n my-app
+kubectl get hpa -n my-app
+kubectl port-forward -n my-app svc/my-app-my-app-web 8080:80
+curl http://localhost:8080/health
+curl http://localhost:8080/ready
+```
+
+Подробнее: [helm/my-app/README.md](helm/my-app/README.md)
+
 ### Jenkins
 
 `Jenkinsfile` содержит parameterized pipeline:
@@ -208,6 +241,10 @@ ghcr.io/x2slow4u/my-app:<commit-sha>
 ### Prometheus Rules
 
 ![Prometheus Rules](docs/screenshots/prometheus-rules.png)
+
+### Alertmanager Alert
+
+![Alertmanager Alert](docs/screenshots/alertmanager-alert.png)
 
 ### Grafana Dashboard
 
