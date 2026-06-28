@@ -1,4 +1,4 @@
-# DevOps Monitoring Demo
+# DevOps-Infra-Lab
 
 [![CI](https://github.com/x2slow4u/my-app/actions/workflows/ci.yml/badge.svg)](https://github.com/x2slow4u/my-app/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
